@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_applicant_form_iats" model="ir.ui.view">
+        <field name="name">hr.applicant.form.iats</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_run_iats_screening"
+                    type="object"
+                    string="Run IATS Screening"
+                    class="btn-primary"
+                    invisible="not job_id"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="iats_profile_id" invisible="1"/>
+                <field name="iats_state" invisible="1"/>
+                <field name="iats_resume_parse_status" invisible="1"/>
+            </xpath>
+            <xpath expr="//page[@name='application_details']" position="after">
+                <page string="IATS Intelligence" name="iats_intelligence">
+                    <group>
+                        <group string="Resume">
+                            <field name="iats_resume_file" filename="iats_resume_filename"/>
+                            <field name="iats_resume_filename" invisible="1"/>
+                            <field name="iats_resume_parse_status" readonly="1" string="Parse Status" widget="badge" decoration-success="iats_resume_parse_status=='ready'"/>
+                            <field name="iats_resume_parse_message" readonly="1" invisible="not iats_resume_parse_message"/>
+                        </group>
+                        <group string="Screening">
+                            <field name="iats_profile_id" readonly="1"/>
+                            <field name="iats_state" readonly="1" string="Status" widget="badge" decoration-info="iats_state=='scored'"/>
+                            <field name="iats_recommendation" readonly="1" string="Recommendation" widget="badge" decoration-danger="iats_recommendation=='reject'" decoration-success="iats_recommendation=='shortlist'" decoration-warning="iats_recommendation=='review'"/>
+                            <field name="iats_last_screened_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Scores">
+                            <field name="iats_score" readonly="1" widget="progressbar"/>
+                            <field name="iats_keyword_score" readonly="1" widget="progressbar"/>
+                            <field name="iats_skill_score" readonly="1" widget="progressbar"/>
+                            <field name="iats_experience_score" readonly="1" widget="progressbar"/>
+                            <field name="iats_education_score" readonly="1" widget="progressbar"/>
+                            <field name="iats_completeness_score" readonly="1" widget="progressbar"/>
+                        </group>
+                        <group string="Insights">
+                            <field name="iats_years_experience" readonly="1"/>
+                            <field name="iats_matched_keywords" readonly="1"/>
+                            <field name="iats_match_summary" readonly="1" widget="text"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="iats_resume_text" readonly="1" widget="text"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_list_iats" model="ir.ui.view">
+        <field name="name">hr.applicant.list.iats</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.crm_case_tree_view_job"/>
+        <field name="arch" type="xml">
+            <field name="stage_id" position="after">
+                <field name="iats_state" optional="show"/>
+                <field name="iats_recommendation" optional="show"/>
+                <field name="iats_score" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_search_iats" model="ir.ui.view">
+        <field name="name">hr.applicant.search.iats</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_search_bis"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='attachment_ids']" position="after">
+                <field name="iats_state"/>
+                <field name="iats_recommendation"/>
+            </xpath>
+            <filter name="done" position="after">
+                <separator/>
+                <filter string="IATS Scored" name="iats_scored" domain="[('iats_state', '=', 'scored')]"/>
+                <filter string="IATS Shortlist" name="iats_shortlist" domain="[('iats_recommendation', '=', 'shortlist')]"/>
+                <filter string="IATS Review" name="iats_review" domain="[('iats_recommendation', '=', 'review')]"/>
+                <filter string="IATS Failed Parse" name="iats_failed" domain="[('iats_resume_parse_status', 'in', ['empty', 'failed'])]"/>
+            </filter>
+            <xpath expr="//group" position="inside">
+                <filter string="IATS State" name="group_iats_state" context="{'group_by': 'iats_state'}"/>
+                <filter string="IATS Recommendation" name="group_iats_recommendation" context="{'group_by': 'iats_recommendation'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_kanban_iats" model="ir.ui.view">
+        <field name="name">hr.applicant.kanban.iats</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_kanban_view_applicant"/>
+        <field name="arch" type="xml">
+            <xpath expr="//templates" position="before">
+                <field name="iats_state"/>
+                <field name="iats_score"/>
+            </xpath>
+            <xpath expr="//field[@name='categ_ids']" position="after">
+                <div t-if="record.iats_state.raw_value == 'scored'" class="mt-1 mb-1">
+                    <span class="badge rounded-pill text-bg-primary">
+                        ATS: <field name="iats_score" widget="integer"/>%
+                    </span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_applicant_kanban_iats" model="ir.ui.view">
+        <field name="name">hr.applicant.kanban.iats</field>
+        <field name="model">hr.applicant</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_kanban_view_applicant"/>
+        <field name="arch" type="xml">
+            <xpath expr="//templates" position="before">
+                <field name="iats_state"/>
+                <field name="iats_score"/>
+            </xpath>
+            <xpath expr="//field[@name='categ_ids']" position="after">
+                <div t-if="record.iats_state.raw_value == 'scored'" class="mt-1 mb-1">
+                    <span class="badge rounded-pill text-bg-primary">
+                        ATS: <field name="iats_score" widget="integer"/>%
+                    </span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+
+

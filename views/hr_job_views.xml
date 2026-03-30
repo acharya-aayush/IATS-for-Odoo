@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_job_form_iats" model="ir.ui.view">
+        <field name="name">hr.job.form.iats</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr_recruitment.hr_job_survey"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_open_iats_profile"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-crosshairs"
+                    groups="hr_recruitment.group_hr_recruitment_user">
+                    <field name="iats_profile_count" widget="statinfo" string="IATS Profiles"/>
+                </button>
+            </xpath>
+            <xpath expr="//page[@name='job_description_page']" position="after">
+                <page string="IATS" name="iats_page" groups="hr_recruitment.group_hr_recruitment_user">
+                    <group>
+                        <group string="Screening">
+                            <field name="iats_profile_count" readonly="1"/>
+                            <field name="iats_average_score" readonly="1"/>
+                        </group>
+                        <group string="Actions">
+                            <button name="action_open_iats_profile" type="object" string="Open IATS Profile" class="btn-primary"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_job_kanban_iats" model="ir.ui.view">
+        <field name="name">hr.job.kanban.iats</field>
+        <field name="model">hr.job</field>
+        <field name="inherit_id" ref="hr_recruitment.view_hr_job_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//templates" position="before">
+                <field name="iats_profile_count"/>
+                <field name="iats_average_score"/>
+            </xpath>
+            <xpath expr="//field[@name='open_application_count']/parent::div/parent::div" position="after">
+            <div class="col align-content-center" groups="hr_recruitment.group_hr_recruitment_user" t-if="record.iats_profile_count.raw_value > 0">
+                <div class="d-flex justify-content-center" title="Average ATS Score for this Job">
+                    <field name="iats_average_score" widget="integer" class="number"/>
+                    <div class="number_description text-body-secondary fs-4 lh-1">
+                        avg %<br/>score
+                    </div>
+                </div>
+            </div>
+        </xpath>
+        </field>
+    </record>
+
+</odoo>

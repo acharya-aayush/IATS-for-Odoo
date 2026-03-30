@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iats_job_profile_user,iats.job.profile.user,model_iats_job_profile,hr_recruitment.group_hr_recruitment_user,1,1,1,0
+access_iats_job_profile_manager,iats.job.profile.manager,model_iats_job_profile,hr_recruitment.group_hr_recruitment_manager,1,1,1,1
+access_iats_screening_keyword_user,iats.screening.keyword.user,model_iats_screening_keyword,hr_recruitment.group_hr_recruitment_user,1,0,0,0
+access_iats_screening_keyword_manager,iats.screening.keyword.manager,model_iats_screening_keyword,hr_recruitment.group_hr_recruitment_manager,1,1,1,1

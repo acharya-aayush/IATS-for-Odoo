@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_iats_profile_screening" model="ir.cron">
+        <field name="name">IATS Automatic Screening</field>
+        <field name="model_id" ref="model_iats_job_profile"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_screen_profiles()</field>
+        <field name="interval_number">30</field>
+        <field name="interval_type">minutes</field>
+        <field name="priority">5</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

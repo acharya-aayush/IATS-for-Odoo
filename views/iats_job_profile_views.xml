@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iats_job_profile_list" model="ir.ui.view">
+        <field name="name">iats.job.profile.list</field>
+        <field name="model">iats.job.profile</field>
+        <field name="arch" type="xml">
+            <list string="IATS Profiles" default_order="write_date desc">
+                <field name="active" optional="hide"/>
+                <field name="name"/>
+                <field name="job_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="minimum_score"/>
+                <field name="auto_screen_enabled"/>
+                <field name="auto_move_stage" optional="hide"/>
+                <field name="applicant_count" string="Applicants"/>
+                <field name="screened_count" string="Screened"/>
+                <field name="high_match_count" string="High Match"/>
+                <field name="average_score" string="Average Score"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iats_job_profile_search" model="ir.ui.view">
+        <field name="name">iats.job.profile.search</field>
+        <field name="model">iats.job.profile</field>
+        <field name="arch" type="xml">
+            <search string="IATS Profiles">
+                <field name="name"/>
+                <field name="job_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="reviewer_user_ids"/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Automation On" name="filter_auto_screen" domain="[('auto_screen_enabled', '=', True)]"/>
+                <separator/>
+                <filter string="Company" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                <filter string="Job" name="group_job" context="{'group_by': 'job_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iats_job_profile_form" model="ir.ui.view">
+        <field name="name">iats.job.profile.form</field>
+        <field name="model">iats.job.profile</field>
+        <field name="arch" type="xml">
+            <form string="IATS Profile">
+                <header>
+                    <button name="action_screen_applicants" type="object" string="Screen Applicants" class="btn-primary"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_ranked_applicants" type="object" class="oe_stat_button" icon="fa-users">
+                            <field name="applicant_count" widget="statinfo" string="Applicants"/>
+                        </button>
+                        <button name="action_view_ranked_applicants" type="object" class="oe_stat_button" icon="fa-line-chart">
+                            <field name="high_match_count" widget="statinfo" string="High Match"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Backend Engineering Profile"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Profile">
+                            <field name="job_id" options="{'no_create': True}"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="minimum_degree_id"/>
+                            <field name="minimum_years_experience"/>
+                            <field name="minimum_score"/>
+                        </group>
+                        <group string="Performance">
+                            <field name="screened_count" readonly="1"/>
+                            <field name="high_match_count" readonly="1"/>
+                            <field name="average_score" readonly="1"/>
+                            <field name="total_weight" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Keywords">
+                            <field name="keyword_ids" widget="many2many_tags" options="{'no_create_edit': False}"/>
+                        </page>
+                        <page string="Scoring">
+                            <group>
+                                <group string="Weights">
+                                    <field name="keyword_weight"/>
+                                    <field name="skill_weight"/>
+                                    <field name="experience_weight"/>
+                                </group>
+                                <group string="Weights">
+                                    <field name="education_weight"/>
+                                    <field name="completeness_weight"/>
+                                    <field name="total_weight" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Automation">
+                            <group>
+                                <group string="Rules">
+                                    <field name="auto_screen_enabled"/>
+                                    <field name="auto_move_stage"/>
+                                    <field name="auto_notify_reviewers"/>
+                                    <field name="reviewer_user_ids" widget="many2many_tags_avatar" options="{'no_create': True}"/>
+                                </group>
+                                <group string="Stage Routing">
+                                    <field name="shortlist_stage_id" domain="['|', ('job_ids', '=', False), ('job_ids', '=', job_id)]" invisible="not auto_move_stage"/>
+                                    <field name="review_stage_id" domain="['|', ('job_ids', '=', False), ('job_ids', '=', job_id)]" invisible="not auto_move_stage"/>
+                                    <field name="reject_stage_id" domain="['|', ('job_ids', '=', False), ('job_ids', '=', job_id)]" invisible="not auto_move_stage"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_iats_screening_keyword_list" model="ir.ui.view">
+        <field name="name">iats.screening.keyword.list</field>
+        <field name="model">iats.screening.keyword</field>
+        <field name="arch" type="xml">
+            <list string="IATS Keywords">
+                <field name="active" optional="hide"/>
+                <field name="name"/>
+                <field name="category"/>
+                <field name="weight"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iats_screening_keyword_form" model="ir.ui.view">
+        <field name="name">iats.screening.keyword.form</field>
+        <field name="model">iats.screening.keyword</field>
+        <field name="arch" type="xml">
+            <form string="IATS Keyword">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="category"/>
+                            <field name="weight"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iats_job_profile" model="ir.actions.act_window">
+        <field name="name">IATS Profiles</field>
+        <field name="res_model">iats.job.profile</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iats_job_profile_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Build job-specific intelligence profiles for applicant screening.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_iats_screening_keyword" model="ir.actions.act_window">
+        <field name="name">IATS Keywords</field>
+        <field name="res_model">iats.screening.keyword</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Maintain reusable screening keywords for your recruitment teams.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_iats_configuration_root"
+        name="IATS"
+        parent="hr_recruitment.menu_hr_recruitment_root"
+        sequence="60"
+        groups="hr_recruitment.group_hr_recruitment_user"/>
+
+    <menuitem
+        id="menu_iats_profiles"
+        name="Screening Profiles"
+        parent="menu_iats_configuration_root"
+        action="action_iats_job_profile"
+        sequence="10"
+        groups="hr_recruitment.group_hr_recruitment_user"/>
+
+    <menuitem
+        id="menu_iats_keywords"
+        name="Keywords"
+        parent="menu_iats_configuration_root"
+        action="action_iats_screening_keyword"
+        sequence="20"
+        groups="hr_recruitment.group_hr_recruitment_manager"/>
+</odoo>
