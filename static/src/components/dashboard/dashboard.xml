@@ -38,63 +38,75 @@
                         </div>
                         <div class="d-flex gap-2 align-items-center">
                             <span class="text-muted small me-2"><t t-esc="state.selectedAppIds.length"/> selected</span>
-                            <button class="btn btn-outline-primary shadow-sm" t-att-disabled="state.selectedAppIds.length &lt; 2" t-on-click="() => this.toggleCompareMode()">
-                                <i class="fa fa-balance-scale me-1"></i> Compare Matrix
+                            <button class="btn btn-outline-primary shadow-sm fw-bold border-2" t-att-disabled="state.selectedAppIds.length &lt; 2" t-on-click="() => this.toggleCompareMode()">
+                                <i class="fa fa-balance-scale me-1"></i> Compare Matrix Sandbox
                             </button>
                         </div>
                     </div>
 
-                    <div class="flex-grow-1 overflow-auto p-4 iats-animate-fade">
-                        <div class="card border border-light shadow-sm rounded-4 overflow-hidden mb-4">
-                            <table class="table table-hover mb-0">
-                                <thead class="bg-light text-muted small text-uppercase">
-                                    <tr>
-                                        <th class="border-0 px-4 py-3" style="width: 40px;"></th>
-                                        <th class="border-0 px-4 py-3">Applicant Name</th>
-                                        <th class="border-0 px-4 py-3">AI Score</th>
-                                        <th class="border-0 px-4 py-3">Pillars (Skill / Exp / Edu)</th>
-                                        <th class="border-0 px-4 py-3">Recommendation</th>
-                                        <th class="border-0 px-4 py-3 text-end">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr t-foreach="state.applicants" t-as="app" t-key="app.id" class="align-middle cursor-pointer" t-attf-class="#{state.selectedAppIds.includes(app.id) ? 'bg-primary bg-opacity-10' : ''}" t-on-click="() => this.toggleSelection(app.id)">
-                                        <td class="px-4 py-3">
-                                            <input type="checkbox" class="form-check-input iats-checkbox-lg m-0" t-att-checked="state.selectedAppIds.includes(app.id)" t-on-click.stop="() => this.toggleSelection(app.id)"/>
-                                        </td>
-                                        <td class="px-4 py-3 fw-bold text-dark">
-                                            <t t-esc="app.partner_name || 'Unnamed Applicant'"/>
-                                        </td>
-                                        <td class="px-4 py-3">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="progress progress-slim" style="width: 60px;">
-                                                    <div t-attf-class="progress-bar #{this.getScoreColor(app.iats_score)}" t-attf-style="width: #{app.iats_score}%;" />
+                    <div class="flex-grow-1 overflow-auto p-4 iats-animate-fade" style="background-color: #f1f5f9;">
+                        <div class="row g-4 w-100 m-0">
+                            <t t-foreach="state.applicants" t-as="app" t-key="app.id">
+                                <div class="col-xxl-3 col-xl-4 col-md-6 px-2">
+                                    <div class="card h-100 border-0 shadow-sm rounded-4 iats-matrix-col-hover position-relative bg-white" style="transition: all 0.2s; cursor: pointer;" t-attf-style="#{state.selectedAppIds.includes(app.id) ? 'box-shadow: 0 0 0 2px var(--o-brand-primary, #714B67) !important;' : ''}" t-on-click="() => this.toggleSelection(app.id)">
+                                        
+                                        <div class="position-absolute top-0 end-0 p-3 z-1">
+                                            <input type="checkbox" class="form-check-input iats-checkbox-lg m-0 shadow-sm border-secondary" t-att-checked="state.selectedAppIds.includes(app.id)" t-on-click.stop="() => this.toggleSelection(app.id)"/>
+                                        </div>
+
+                                        <div class="card-body p-4 d-flex flex-column h-100" t-attf-style="#{state.selectedAppIds.includes(app.id) ? 'background-color: rgba(113, 75, 103, 0.03) !important;' : ''}">
+                                            <div class="d-flex align-items-start gap-3 mb-4">
+                                                <div class="iats-score-pill shadow-sm" style="flex-shrink: 0; width: 55px; height: 55px;" t-attf-class="#{this.getScoreColor(app.iats_score)}">
+                                                    <t t-esc="Math.round(app.iats_score)"/>
                                                 </div>
-                                                <span t-attf-class="fw-bold #{app.iats_score &gt;= 80 ? 'text-success' : (app.iats_score &gt;= 60 ? 'text-warning' : 'text-danger')}"><t t-esc="app.iats_score"/>%</span>
+                                                <div class="overflow-hidden pe-4">
+                                                    <h5 class="fw-bold m-0 text-dark text-truncate" t-att-title="app.partner_name || 'Unnamed'"><t t-esc="app.partner_name || 'Unnamed'"/></h5>
+                                                    <span t-if="app.iats_recommendation === 'shortlist'" class="badge bg-success bg-opacity-25 text-success rounded-pill mt-2 border border-success">Shortlisted</span>
+                                                    <span t-elif="app.iats_recommendation === 'review'" class="badge bg-warning bg-opacity-25 text-warning rounded-pill mt-2 border border-warning">Review</span>
+                                                    <span t-elif="app.iats_recommendation === 'reject'" class="badge bg-danger bg-opacity-25 text-danger rounded-pill mt-2 border border-danger">Not a Fit</span>
+                                                </div>
                                             </div>
-                                        </td>
-                                        <td class="px-4 py-3 small">
-                                            <span class="badge bg-light text-dark border me-1"><t t-esc="Math.round(app.iats_skill_score)"/>% Sk</span>
-                                            <span class="badge bg-light text-dark border me-1"><t t-esc="Math.round(app.iats_experience_score)"/>% Ex</span>
-                                            <span class="badge bg-light text-dark border"><t t-esc="Math.round(app.iats_education_score)"/>% Ed</span>
-                                        </td>
-                                        <td class="px-4 py-3">
-                                            <span t-if="app.iats_recommendation === 'shortlist'" class="badge bg-success bg-opacity-25 text-success border border-success">Shortlisted</span>
-                                            <span t-elif="app.iats_recommendation === 'review'" class="badge bg-warning bg-opacity-25 text-warning border border-warning">Review</span>
-                                            <span t-elif="app.iats_recommendation === 'reject'" class="badge bg-danger bg-opacity-25 text-danger border border-danger">Not a Fit</span>
-                                        </td>
-                                        <td class="px-4 py-3 text-end">
-                                            <button class="btn btn-sm btn-light border fw-bold" t-on-click.stop="() => this.openApplicant(app.id)">View Native</button>
-                                        </td>
-                                    </tr>
-                                    <tr t-if="state.applicants.length === 0">
-                                        <td colspan="6" class="text-center py-5 text-muted">
-                                            <i class="fa fa-folder-open mb-3 fa-2x opacity-50"></i><br/>
-                                            No candidates have been processed by IATS for this position.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+
+                                            <div class="mb-4 flex-grow-1">
+                                                <div class="small fw-bold text-muted mb-2 text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">AI Extracted Skills</div>
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <t t-if="app.iats_matched_skills">
+                                                        <t t-foreach="app.iats_matched_skills.split(',').slice(0,4)" t-as="skill" t-key="skill">
+                                                            <span class="badge bg-light text-dark border px-2 py-1 fw-bold" style="font-size:0.7rem;"><t t-esc="skill.trim()"/></span>
+                                                        </t>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span class="badge bg-light text-muted border px-2 py-1 fw-normal" style="font-size:0.7rem;">None specifically parsed</span>
+                                                    </t>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3 mt-auto">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="text-muted small fw-bold" style="font-size: 0.70rem;">Overall Match Score</span>
+                                                    <span class="text-dark small fw-bold"><t t-esc="Math.round((app.iats_skill_score + app.iats_experience_score + app.iats_education_score) / 3)"/>%</span>
+                                                </div>
+                                                <div class="progress bg-light" style="height: 6px;">
+                                                    <div class="progress-bar bg-primary opacity-50 rounded-pill" t-attf-style="width: #{(app.iats_skill_score + app.iats_experience_score + app.iats_education_score) / 3}%;"/>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-3">
+                                                <div class="small fw-bold text-secondary">
+                                                    <i class="fa fa-briefcase text-primary opacity-50 me-1"></i> <t t-esc="Math.round(app.iats_experience_score)"/>% Exp Match
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-secondary border shadow-sm px-3 rounded-pill fw-bold" style="transition: all 0.2s;" t-on-click.stop="() => this.openApplicant(app.id)">Full CV</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                            <t t-if="state.applicants.length === 0">
+                                <div class="col-12 text-center py-5 text-muted">
+                                    <i class="fa fa-folder-open mb-3 fa-3x opacity-25"></i><br/>
+                                    No candidates have been processed by IATS for this position.
+                                </div>
+                            </t>
                         </div>
                     </div>
                 </t>
@@ -128,11 +140,60 @@
                                     </div>
                                     
                                     <!-- Pillar Scores Details -->
-                                    <div class="p-4 flex-grow-1 overflow-auto bg-white">
+                                    <div class="p-4 flex-grow-1 overflow-auto bg-white custom-scrollbar">
+
+                                        <!-- New AI Fit Analysis Box -->
+                                        <div class="mb-4">
+                                            <h6 class="fw-bold small text-uppercase mb-2 text-dark">AI Fit Analysis</h6>
+                                            <div class="p-2 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3 mb-2">
+                                                <p class="text-success fw-bold m-0 mb-1" style="font-size:0.7rem; letter-spacing:0.5px;">MATCHED SKILLS</p>
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <t t-if="app.iats_matched_skills">
+                                                        <t t-foreach="app.iats_matched_skills.split(',')" t-as="skill" t-key="skill">
+                                                            <span class="badge bg-white text-success border border-success border-opacity-25 shadow-sm" style="font-size:0.7rem;"><t t-esc="skill.trim()"/></span>
+                                                        </t>
+                                                    </t>
+                                                    <t t-else=""><span class="small text-muted fst-italic">None identified</span></t>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-3">
+                                                <p class="text-danger fw-bold m-0 mb-1" style="font-size:0.7rem; letter-spacing:0.5px;">MISSING SKILLS</p>
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <t t-if="app.iats_missing_skills">
+                                                        <t t-foreach="app.iats_missing_skills.split(',')" t-as="mskill" t-key="mskill">
+                                                            <span class="badge bg-white text-danger border border-danger border-opacity-25 shadow-sm" style="font-size:0.7rem;"><t t-esc="mskill.trim()"/></span>
+                                                        </t>
+                                                    </t>
+                                                    <t t-elif="app.iats_skill_score &lt; 20"><span class="badge bg-white text-danger border border-danger border-opacity-25 shadow-sm" style="font-size:0.7rem;">Complete Profile Mismatch</span></t>
+<t t-else=""><span class="small text-muted fst-italic">No critical misses</span></t>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Red flags -->
+                                        <div class="mb-4">
+                                            <h6 class="fw-bold small text-uppercase mb-2 text-dark">Red Flags &amp; Insights</h6>
+                                            <div class="p-3 bg-warning bg-opacity-10 border border-warning border-opacity-50 rounded-3 text-dark small shadow-sm" style="line-height: 1.5;">
+                                                <t t-if="app.iats_red_flags">
+                                                    <t t-out="app.iats_red_flags"/>
+                                                </t>
+                                                <t t-elif="(app.iats_skill_score + app.iats_experience_score + app.iats_education_score) == 0">
+                                                    <span class="text-danger fw-bold"><i class="fa fa-exclamation-triangle me-1"></i> Critical: Zero profile match or keyword stuffing detected. Resume ignored.</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="text-muted fst-italic"><i class="fa fa-check text-success me-1"></i> No immediate red flags detected.</span>
+                                                </t>
+                                            </div>
+                                        </div>
+
+                                        <hr class="opacity-10 my-4"/>
+
+                                        <h6 class="fw-bold small text-uppercase mb-3 text-dark">Detailed Score Breakdown</h6>
                                         <!-- Skill -->
                                         <div class="mb-4">
                                             <div class="d-flex justify-content-between small fw-bold mb-1">
-                                                <span>Skill Extraction Match</span>
+                                                <span>Skill Match</span>
                                                 <span t-attf-class="#{app.iats_skill_score &gt; 70 ? 'text-success' : 'text-muted'}"><t t-esc="Math.round(app.iats_skill_score)"/>%</span>
                                             </div>
                                             <div class="progress progress-slim">
@@ -142,7 +203,7 @@
                                         <!-- Experience -->
                                         <div class="mb-4">
                                             <div class="d-flex justify-content-between small fw-bold mb-1">
-                                                <span>Experience Depth</span>
+                                                <span>Experience Match</span>
                                                 <span t-attf-class="#{app.iats_experience_score &gt; 70 ? 'text-success' : 'text-muted'}"><t t-esc="Math.round(app.iats_experience_score)"/>%</span>
                                             </div>
                                             <div class="progress progress-slim">
@@ -152,7 +213,7 @@
                                         <!-- Education -->
                                         <div class="mb-4">
                                             <div class="d-flex justify-content-between small fw-bold mb-1">
-                                                <span>Education Mapping</span>
+                                                <span>Education Match</span>
                                                 <span t-attf-class="#{app.iats_education_score &gt; 70 ? 'text-success' : 'text-muted'}"><t t-esc="Math.round(app.iats_education_score)"/>%</span>
                                             </div>
                                             <div class="progress progress-slim">

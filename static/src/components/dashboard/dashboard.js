@@ -56,7 +56,10 @@ export class IatsDashboardCard extends Component {
                 'iats_education_score', 
                 'iats_keyword_score', 
                 'iats_completeness_score', 
-                'iats_match_summary'
+                'iats_match_summary',
+                'iats_matched_skills',
+                'iats_missing_skills',
+                'iats_red_flags'
             ],
             { order: 'iats_score desc', limit: 50 }
         );

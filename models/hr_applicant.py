@@ -65,6 +65,9 @@ class HrApplicant(models.Model):
     iats_last_screened_at = fields.Datetime(string="Last Screened", copy=False)
     iats_years_experience = fields.Float(string="Years of Experience", copy=False)
     iats_matched_keywords = fields.Char(string="Matched Keywords", copy=False)
+    iats_matched_skills = fields.Char(string="Matched Skills", copy=False, help="Comma-separated matched skills")
+    iats_missing_skills = fields.Char(string="Missing Skills", copy=False, help="Comma-separated missing skills")
+    iats_red_flags = fields.Text(string="Red Flags & Insights", copy=False)
     iats_match_summary = fields.Text(string="Match Summary", copy=False)
 
     iats_resume_file = fields.Binary(string="IATS Resume", attachment=True)
