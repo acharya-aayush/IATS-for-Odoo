@@ -26,11 +26,19 @@ Key capabilities:
     ],
     "data": [
         "security/ir.model.access.csv",
+        "views/dashboard_actions.xml",
         "views/iats_job_profile_views.xml",
         "views/hr_job_views.xml",
         "views/hr_applicant_views.xml",
         "data/iats_cron_data.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "iats_recruitment/static/src/components/dashboard/dashboard.scss",
+            "iats_recruitment/static/src/components/dashboard/dashboard.xml",
+            "iats_recruitment/static/src/components/dashboard/dashboard.js",
+        ],
+    },
     "installable": True,
     "application": True,
     "auto_install": False,

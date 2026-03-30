@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_iats_dashboard" model="ir.actions.client">
+        <field name="name">IATS Candidate Comparison</field>
+        <field name="tag">iats.commands_dashboard</field>
+    </record>
+
+    <!-- Placement under Recruitment top menu at the END -->
+    <menuitem 
+        id="menu_iats_dashboard" 
+        name="IATS Compare" 
+        parent="hr_recruitment.menu_hr_recruitment_root" 
+        action="action_iats_dashboard" 
+        sequence="90" />
+</odoo>

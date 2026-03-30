@@ -52,8 +52,8 @@
                         <button name="action_view_ranked_applicants" type="object" class="oe_stat_button" icon="fa-users">
                             <field name="applicant_count" widget="statinfo" string="Applicants"/>
                         </button>
-                        <button name="action_view_ranked_applicants" type="object" class="oe_stat_button" icon="fa-line-chart">
-                            <field name="high_match_count" widget="statinfo" string="High Match"/>
+                        <button name="action_view_top_applicants" type="object" class="oe_stat_button" icon="fa-trophy">
+                            <field name="high_match_count" widget="statinfo" string="Top Applicants"/>
                         </button>
                     </div>
                     <div class="oe_title">
@@ -68,7 +68,7 @@
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="minimum_degree_id"/>
                             <field name="minimum_years_experience"/>
-                            <field name="minimum_score"/>
+                            <field name="threshold_score" string="Threshold Score"/>
                         </group>
                         <group string="Performance">
                             <field name="screened_count" readonly="1"/>
@@ -79,7 +79,17 @@
                     </group>
                     <notebook>
                         <page string="Keywords">
-                            <field name="keyword_ids" widget="many2many_tags" options="{'no_create_edit': False}"/>
+                            <group>
+                                <group string="General Keywords">
+                                    <field name="keyword_ids" widget="many2many_tags" options="{'no_create_edit': False}" nolabel="1"/>
+                                </group>
+                                <group string="Native Odoo Skills">
+                                    <field name="skill_keyword_ids" widget="many2many_tags" options="{'no_create_edit': False}" nolabel="1"/>
+                                </group>
+                                <group string="Education Keywords">
+                                    <field name="education_keyword_ids" widget="many2many_tags" options="{'no_create_edit': False}" nolabel="1" help="Only match these explicit terms for Education scoring."/>
+                                </group>
+                            </group>
                         </page>
                         <page string="Scoring">
                             <group>
@@ -99,11 +109,15 @@
                             <group>
                                 <group string="Rules">
                                     <field name="auto_screen_enabled"/>
-                                    <field name="auto_move_stage"/>
+                                    <field name="auto_move_stage" string="Auto-Move by Recommendation"/>
                                     <field name="auto_notify_reviewers"/>
                                     <field name="reviewer_user_ids" widget="many2many_tags_avatar" options="{'no_create': True}"/>
                                 </group>
-                                <group string="Stage Routing">
+                                <group string="Top Applicants Fast-Track">
+                                    <field name="auto_move_qualified"/>
+                                    <field name="auto_move_stage_id" domain="['|', ('job_ids', '=', False), ('job_ids', '=', job_id)]" invisible="not auto_move_qualified"/>
+                                </group>
+                                <group string="Stage Routing (Recommendation)">
                                     <field name="shortlist_stage_id" domain="['|', ('job_ids', '=', False), ('job_ids', '=', job_id)]" invisible="not auto_move_stage"/>
                                     <field name="review_stage_id" domain="['|', ('job_ids', '=', False), ('job_ids', '=', job_id)]" invisible="not auto_move_stage"/>
                                     <field name="reject_stage_id" domain="['|', ('job_ids', '=', False), ('job_ids', '=', job_id)]" invisible="not auto_move_stage"/>

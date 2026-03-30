@@ -285,8 +285,16 @@ class HrApplicant(models.Model):
     def _apply_iats_stage_routing(self):
         self.ensure_one()
         profile = self.iats_profile_id
-        if not profile or not profile.auto_move_stage:
+        if not profile:
             return
+            
+        if profile.auto_move_qualified and self.iats_score >= profile.threshold_score and profile.auto_move_stage_id:
+            self.stage_id = profile.auto_move_stage_id.id
+            return
+
+        if not profile.auto_move_stage:
+            return
+            
         if self.iats_recommendation == "shortlist" and profile.shortlist_stage_id:
             self.stage_id = profile.shortlist_stage_id.id
         elif self.iats_recommendation == "review" and profile.review_stage_id:
@@ -337,3 +345,20 @@ class HrApplicant(models.Model):
                 "sticky": False,
             },
         }
+
+    def action_show_top_applicants(self):
+        # Action that filters the board down to 'shortlist' recommendations.
+        domain = [('iats_recommendation', '=', 'shortlist')]
+        
+        # We try to keep the job context if this was triggered from a specific pipeline board
+        if self.env.context.get('default_job_id'):
+            domain.append(('job_id', '=', self.env.context.get('default_job_id')))
+        elif self.env.context.get('active_id') and self.env.context.get('active_model') == 'hr.job':
+            domain.append(('job_id', '=', self.env.context.get('active_id')))
+            
+        action = self.env["ir.actions.actions"]._for_xml_id("hr_recruitment.action_hr_job_applications")
+        action['domain'] = domain
+        action['name'] = 'Top Applicants'
+        action['context'] = dict(self.env.context, search_default_iats_shortlist=1)
+        
+        return action

@@ -50,6 +50,12 @@ class IATSJobProfile(models.Model):
     completeness_weight = fields.Float(default=15.0)
     total_weight = fields.Float(compute="_compute_total_weight")
 
+    education_keyword_ids = fields.Many2many("iats.screening.keyword", "iats_profile_education_keyword_rel", string="Education Keywords")
+    skill_keyword_ids = fields.Many2many("hr.skill", string="Native Skill Keywords")
+    threshold_score = fields.Float(default=75.0, string="Threshold Score", help="Applicants scoring above this are considered Top Applicants.")
+    auto_move_qualified = fields.Boolean(default=False, string="Auto-Move Top Applicants")
+    auto_move_stage_id = fields.Many2one("hr.recruitment.stage", string="Qualified Stage")
+
     applicant_ids = fields.One2many("hr.applicant", "iats_profile_id", string="Applicants")
     applicant_count = fields.Integer(compute="_compute_dashboard_metrics")
     screened_count = fields.Integer(compute="_compute_dashboard_metrics")
@@ -94,8 +100,22 @@ class IATSJobProfile(models.Model):
             scored = applicants.filtered(lambda applicant: applicant.iats_state == "scored")
             profile.applicant_count = len(applicants)
             profile.screened_count = len(scored)
-            profile.high_match_count = len(scored.filtered(lambda applicant: applicant.iats_score >= profile.minimum_score))
+            profile.high_match_count = len(scored.filtered(lambda applicant: applicant.iats_score >= profile.threshold_score))
             profile.average_score = sum(scored.mapped("iats_score")) / len(scored) if scored else 0.0
+
+    def action_view_ranked_applicants(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("hr_recruitment.action_hr_job_applications")
+        action["domain"] = [("iats_profile_id", "=", self.id)]
+        action["context"] = {"default_iats_profile_id": self.id, "search_default_job_id": self.job_id.id}
+        return action
+
+    def action_view_top_applicants(self):
+        self.ensure_one()
+        action = self.action_view_ranked_applicants()
+        action["domain"] = [("iats_profile_id", "=", self.id), ("iats_score", ">=", self.threshold_score)]
+        action["display_name"] = f"Top Applicants ({self.threshold_score}+)"
+        return action
 
     def _normalize_weights(self):
         self.ensure_one()
@@ -137,12 +157,30 @@ class IATSJobProfile(models.Model):
         self.ensure_one()
         job_skills = getattr(self.job_id, "job_skill_ids", self.env["hr.job.skill"])
         applicant_skills = getattr(applicant, "current_applicant_skill_ids", self.env["hr.applicant.skill"])
+        resume_text_lower = applicant.iats_resume_text.lower() if applicant.iats_resume_text else ""
+        
+        # Check native skills and append if not already present
+        if hasattr(self.env, 'hr.skill') and hasattr(self.env, 'hr.applicant.skill'):
+            for native_skill in self.skill_keyword_ids:
+                if native_skill.name.lower() in resume_text_lower:
+                    # check if applicant already has it
+                    if not any(s.skill_id.id == native_skill.id for s in applicant_skills):
+                        default_level = self.env['hr.skill.level'].search([('skill_type_id', '=', native_skill.skill_type_id.id)], order='level_progress desc', limit=1)
+                        if default_level:
+                            self.env['hr.applicant.skill'].create({
+                                'applicant_id': applicant.id,
+                                'skill_id': native_skill.id,
+                                'skill_level_id': default_level.id,
+                                'skill_type_id': native_skill.skill_type_id.id
+                            })
+            # reload applicant skills after potentially adding new ones
+            applicant_skills = getattr(applicant, "current_applicant_skill_ids", self.env["hr.applicant.skill"])
+        
         if not job_skills:
             return 100.0 if applicant_skills else 60.0
 
         applicant_skill_map = {skill.skill_id.id: skill.level_progress or 0.0 for skill in applicant_skills}
         score_parts = []
-        resume_text_lower = applicant.iats_resume_text.lower() if applicant.iats_resume_text else ""
         for job_skill in job_skills:
             required = max(job_skill.level_progress or 0.0, 1.0)
             actual = applicant_skill_map.get(job_skill.skill_id.id, -1.0)
@@ -163,19 +201,34 @@ class IATSJobProfile(models.Model):
             return 0.0
             
         text = resume_text.lower()
+        
+        # If there are explicit education keywords set by the recruiter, only score if those match exactly
+        if self.education_keyword_ids:
+            for keyword in self.education_keyword_ids:
+                if keyword.name.lower() in text:
+                    return 100.0  # Or based on keyword weight
+            return 0.0
+
+        # Try to isolate the "Education" section to avoid matching "Dr. Dentist" in projects
+        education_section_match = re.search(r'\b(education|academic background|qualifications)\b(.*)', text, re.IGNORECASE | re.DOTALL)
+        if education_section_match:
+            text_to_search = education_section_match.group(2)[:1000] # limit to 1000 chars after education keyword
+        else:
+            text_to_search = text
+
         # High value/PhD
         phd_patterns = ['phd', 'ph.d', 'doctorate', 'doctoral']
-        if any(p in text for p in phd_patterns):
+        if any(p in text_to_search for p in phd_patterns):
             return 100.0
             
         # Master Degree
         master_patterns = ['master', 'msc', 'm.sc', 'm.a', 'ma ', 'mba', 'm.b.a']
-        if any(re.search(r'\b%s\b' % p, text) for p in master_patterns):
+        if any(re.search(r'\b%s\b' % p, text_to_search) for p in master_patterns):
             return 80.0
             
         # Bachelor Degree
         bachelor_patterns = ['bachelor', 'bsc', 'b.sc', 'b.a', 'ba ', 'b.e', 'btech', 'b.tech', 'bit', 'b.i.t', 'bbs', 'b.b.s', 'bca', 'b.c.a']
-        if any(re.search(r'\b%s\b' % p, text) for p in bachelor_patterns):
+        if any(re.search(r'\b%s\b' % p, text_to_search) for p in bachelor_patterns):
             return 60.0
             
         return 0.0

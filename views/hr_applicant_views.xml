@@ -99,37 +99,23 @@
         <field name="inherit_id" ref="hr_recruitment.hr_kanban_view_applicant"/>
         <field name="arch" type="xml">
             <xpath expr="//templates" position="before">
+                <header>
+                    <button name="action_show_top_applicants" type="object" string="Top Applicants" class="btn-success fw-bold" display="always"/>
+                </header>
                 <field name="iats_state"/>
                 <field name="iats_score"/>
+                <field name="iats_recommendation"/>
             </xpath>
             <xpath expr="//field[@name='categ_ids']" position="after">
-                <div t-if="record.iats_state.raw_value == 'scored'" class="mt-1 mb-1">
-                    <span class="badge rounded-pill text-bg-primary">
-                        ATS: <field name="iats_score" widget="integer"/>%
+                <div t-if="record.iats_state.raw_value == 'scored'" class="mt-1">
+                    <span t-attf-class="fw-bold #{record.iats_recommendation.raw_value == 'shortlist' and 'text-success' or (record.iats_recommendation.raw_value == 'reject' and 'text-danger' or 'text-warning')}">
+                        <field name="iats_score" widget="integer"/>%
                     </span>
                 </div>
             </xpath>
         </field>
     </record>
 
-    <record id="view_hr_applicant_kanban_iats" model="ir.ui.view">
-        <field name="name">hr.applicant.kanban.iats</field>
-        <field name="model">hr.applicant</field>
-        <field name="inherit_id" ref="hr_recruitment.hr_kanban_view_applicant"/>
-        <field name="arch" type="xml">
-            <xpath expr="//templates" position="before">
-                <field name="iats_state"/>
-                <field name="iats_score"/>
-            </xpath>
-            <xpath expr="//field[@name='categ_ids']" position="after">
-                <div t-if="record.iats_state.raw_value == 'scored'" class="mt-1 mb-1">
-                    <span class="badge rounded-pill text-bg-primary">
-                        ATS: <field name="iats_score" widget="integer"/>%
-                    </span>
-                </div>
-            </xpath>
-        </field>
-    </record>
 </odoo>
 
 

@@ -7,11 +7,13 @@ class HrJob(models.Model):
     iats_profile_ids = fields.One2many("iats.job.profile", "job_id", string="IATS Profiles")
     iats_profile_count = fields.Integer(compute="_compute_iats_metrics")
     iats_average_score = fields.Float(compute="_compute_iats_metrics")
+    iats_high_match_count = fields.Integer(compute="_compute_iats_metrics")
 
-    @api.depends("iats_profile_ids", "iats_profile_ids.average_score")
+    @api.depends("iats_profile_ids", "iats_profile_ids.average_score", "iats_profile_ids.high_match_count")
     def _compute_iats_metrics(self):
         for job in self:
             job.iats_profile_count = len(job.iats_profile_ids)
+            job.iats_high_match_count = sum(job.iats_profile_ids.mapped("high_match_count"))
             job.iats_average_score = sum(job.iats_profile_ids.mapped("average_score")) / len(job.iats_profile_ids) if job.iats_profile_ids else 0.0
 
     def _get_or_create_iats_profile(self):
@@ -37,3 +39,8 @@ class HrJob(models.Model):
             "res_id": profile.id,
             "target": "current",
         }
+
+    def action_view_iats_high_match(self):
+        self.ensure_one()
+        profile = self._get_or_create_iats_profile()
+        return profile.action_view_top_applicants()
